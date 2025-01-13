@@ -130,6 +130,42 @@ public_users.get('/title/:title', function (req, res) {
       });
     }
   });
+// Ruta para agregar o modificar reseñas de un libro
+public_users.post('/review/:isbn', function (req, res) {
+    const { username } = req.body;  // Obtener el nombre de usuario desde el cuerpo de la solicitud
+    const { review } = req.body;    // Obtener la reseña desde el cuerpo de la solicitud
+    const isbn = req.params.isbn;   // Obtener el ISBN del libro desde los parámetros de la URL
+    
+    // Verificar si el libro con el ISBN proporcionado existe
+    let book = books[isbn];
+  
+    if (book) {
+        // Si el libro tiene reseñas y el usuario ya ha dejado una reseña para este libro
+        if (book.reviews && book.reviews[username]) {
+            // Si ya existe una reseña del mismo usuario, la modificamos
+            book.reviews[username] = review;
+            return res.status(200).json({
+                message: `Reseña modificada para el libro con ISBN: ${isbn}`,
+                review: book.reviews[username]
+            });
+        } else {
+            // Si no existe una reseña del usuario, la agregamos
+            if (!book.reviews) {
+                book.reviews = {}; // Si no existe el objeto de reseñas, lo inicializamos
+            }
+            book.reviews[username] = review;
+            return res.status(201).json({
+                message: `Reseña agregada para el libro con ISBN: ${isbn}`,
+                review: book.reviews[username]
+            });
+        }
+    } else {
+        // Si el libro no existe
+        return res.status(404).json({
+            message: `No se encontró el libro con ISBN: ${isbn}`
+        });
+    }
+});
 
   public_users.get('/review/:isbn', function (req, res) {
     const isbn = req.params.isbn; // Obtener el ISBN desde los parámetros de la URL
