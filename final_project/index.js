@@ -46,7 +46,7 @@ app.get('/customer/dashboard', (req, res) => {
     res.send(`Bienvenido, ${req.user.username}`);
 });
 
-const PORT = 5001;
+const PORT = 5004;
 
 app.use("/customer", customer_routes);
 app.use("/", genl_routes);

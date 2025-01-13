@@ -4,7 +4,27 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
+public_users.post('/login', (req, res) => {
+    const { username, password } = req.body;
 
+    // Verifica si el nombre de usuario existe
+    if (!isValid(username)) {
+        return res.status(400).json({ message: 'Usuario no encontrado.' });
+    }
+
+    // Verifica si el usuario está registrado
+    if (!users[username]) {
+        return res.status(400).json({ message: 'Usuario no registrado.' });
+    }
+
+    // Verifica si la contraseña coincide
+    if (users[username].password !== password) {
+        return res.status(400).json({ message: 'Contraseña incorrecta.' });
+    }
+
+    // Si las credenciales son correctas
+    return res.status(200).json({ message: 'Inicio de sesión exitoso.' });
+});
 // Ruta para registrar un nuevo usuario
 public_users.post('/register', (req, res) => {
     const { username, password } = req.body; // Recibe el nombre de usuario y la contraseña
