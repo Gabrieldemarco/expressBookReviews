@@ -1,12 +1,13 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const session = require('express-session');
-const customer_routes = require('./router/auth_users.js').authenticated;
+const { authenticated, isValid, users } = require('./router/auth_users.js'); // Importa las rutas y funciones necesarias
 const genl_routes = require('./router/general.js').general;
 
 const app = express();
 
-const secretKey = "fingerprint_customer"; // Clave secreta para firmar el JWT
+const secretKey = "fingerprint"; // Clave secreta para firmar el JWT
 
 app.use(express.json());
 
@@ -29,11 +30,18 @@ app.use("/customer/auth/*", function auth(req, res, next) {
     }
 });
 
-// Ruta para iniciar sesión y generar un JWT
+// Ruta para iniciar sesión y generar un JWT (Usando la autenticación de usuarios que tienes)
 app.post('/customer/login', (req, res) => {
     const { username, password } = req.body;
-    // Simulación de autenticación de usuario
-    if (username === 'user' && password === 'password') {
+
+    // Verifica si el nombre de usuario es válido
+    if (!isValid(username)) {
+        return res.status(400).json({ message: 'Usuario no encontrado.' });
+    }
+
+    // Verifica si la contraseña es correcta
+    const user = users.find(u => u.username === username);
+    if (user && bcrypt.compareSync(password, user.password)) {
         const token = jwt.sign({ username }, secretKey, { expiresIn: '1h' });
         res.json({ token });
     } else {
@@ -48,7 +56,7 @@ app.get('/customer/dashboard', (req, res) => {
 
 const PORT = 5004;
 
-app.use("/customer", customer_routes);
+app.use("/customer", authenticated); // Usa las rutas de autenticación
 app.use("/", genl_routes);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
